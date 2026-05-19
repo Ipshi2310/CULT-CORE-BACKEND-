@@ -48,7 +48,13 @@ export class AuthController {
     @UseGuards(AuthGuard('google'))
     async googleAuthRedirect(@Req() req: any, @Res() res: express.Response) {
         const result = await this.authService.validateGoogleUser(req.user);
-        const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3001';
+        let frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3001';
+        
+        // Ensure frontendUrl is absolute and has no trailing slash for consistent path construction
+        if (!frontendUrl.startsWith('http://') && !frontendUrl.startsWith('https://')) {
+            frontendUrl = `https://${frontendUrl}`;
+        }
+        frontendUrl = frontendUrl.replace(/\/$/, '');
 
         // Redirect to frontend with tokens
         return res.redirect(`${frontendUrl}/login?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`);
